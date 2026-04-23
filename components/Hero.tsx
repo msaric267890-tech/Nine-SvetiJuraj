@@ -1,0 +1,204 @@
+'use client';
+
+import Image from 'next/image';
+import { useEffect, useRef } from 'react';
+
+export default function Hero() {
+  const bgRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const onScroll = () => {
+      if (bgRef.current) {
+        bgRef.current.style.transform = `translateY(${window.scrollY * 0.18}px)`;
+      }
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  return (
+    <section
+      id="hero"
+      style={{
+        position: 'relative',
+        height: '100svh',
+        minHeight: 600,
+        overflow: 'hidden',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+    >
+      {/* Parallax background */}
+      <div
+        ref={bgRef}
+        style={{
+          position: 'absolute',
+          inset: '-8%',
+          backgroundColor: 'var(--ink2)',
+          willChange: 'transform',
+        }}
+      >
+        <Image
+          src="/images/panorama.jpg"
+          alt="Panorama Svetog Jurja"
+          fill
+          priority
+          quality={90}
+          sizes="100vw"
+          style={{
+            objectFit: 'cover',
+            objectPosition: 'center',
+            filter: 'contrast(1.03) saturate(1.02)',
+          }}
+        />
+      </div>
+
+      {/* Gradient overlay */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'linear-gradient(to bottom, rgba(18,24,31,0.55) 0%, rgba(18,24,31,0.3) 50%, rgba(18,24,31,0.75) 100%)',
+        }}
+      />
+
+      {/* Content */}
+      <div
+        style={{
+          position: 'relative',
+          textAlign: 'center',
+          color: 'var(--white)',
+          padding: '0 1.5rem',
+          maxWidth: 800,
+        }}
+      >
+        {/* Rating badge */}
+        <div
+          style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.6rem',
+            border: '1px solid var(--gold)',
+            borderRadius: 2,
+            padding: '0.4rem 1rem',
+            marginBottom: '2rem',
+            fontSize: '0.75rem',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            color: 'var(--gold-lt)',
+          }}
+        >
+          <span
+            style={{
+              fontFamily: 'var(--font-cormorant)',
+              fontSize: '1.1rem',
+              fontWeight: 400,
+            }}
+          >
+            8.9
+          </span>
+          <span>Booking.com</span>
+        </div>
+
+        {/* Eyebrow */}
+        <p
+          style={{
+            fontSize: '0.78rem',
+            letterSpacing: '0.25em',
+            textTransform: 'uppercase',
+            color: 'var(--gold-lt)',
+            marginBottom: '1rem',
+            opacity: 0.9,
+          }}
+        >
+          Sveti Juraj · Hrvatska
+        </p>
+
+        {/* Main title */}
+        <h1
+          style={{
+            fontFamily: 'var(--font-cormorant)',
+            fontSize: 'clamp(2.8rem, 8vw, 6rem)',
+            fontWeight: 300,
+            lineHeight: 1.04,
+            letterSpacing: '0.04em',
+            marginBottom: '1.5rem',
+          }}
+        >
+          Nine Sveti Juraj
+        </h1>
+
+        {/* Tagline */}
+        <p
+          style={{
+            fontSize: 'clamp(0.95rem, 2vw, 1.15rem)',
+            fontWeight: 300,
+            letterSpacing: '0.08em',
+            opacity: 0.8,
+            marginBottom: '2.5rem',
+          }}
+        >
+          Privatni smještaj uz more · Sveti Juraj, Hrvatska
+        </p>
+
+        {/* CTA */}
+        <a
+          href="#book"
+          style={{
+            display: 'inline-block',
+            background: 'var(--gold)',
+            color: 'var(--ink)',
+            padding: '0.85rem 2.5rem',
+            fontSize: '0.8rem',
+            letterSpacing: '0.15em',
+            textTransform: 'uppercase',
+            textDecoration: 'none',
+            fontWeight: 500,
+            transition: 'background 0.25s',
+            borderRadius: 2,
+          }}
+          onMouseEnter={(e) =>
+            ((e.target as HTMLElement).style.background = 'var(--gold-lt)')
+          }
+          onMouseLeave={(e) =>
+            ((e.target as HTMLElement).style.background = 'var(--gold)')
+          }
+        >
+          Rezerviraj
+        </a>
+      </div>
+
+      {/* Scroll indicator */}
+      <div
+        style={{
+          position: 'absolute',
+          bottom: '2rem',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: '0.5rem',
+          opacity: 0.5,
+          color: 'var(--white)',
+        }}
+      >
+        <span
+          style={{
+            fontSize: '0.65rem',
+            letterSpacing: '0.2em',
+            textTransform: 'uppercase',
+          }}
+        >
+          Scroll
+        </span>
+        <svg width="14" height="20" viewBox="0 0 14 20" fill="none">
+          <rect x="5.5" y="0" width="3" height="8" rx="1.5" fill="currentColor" opacity="0.6" />
+          <path d="M7 16 L1 10 M7 16 L13 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+        </svg>
+      </div>
+    </section>
+  );
+}
