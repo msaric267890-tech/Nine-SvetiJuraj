@@ -18,7 +18,7 @@ export default function TerrainRelief() {
 
     const scene = new THREE.Scene();
     scene.background = new THREE.Color(0x12181f);
-    scene.fog = new THREE.FogExp2(0x12181f, 0.1);
+    scene.fog = new THREE.FogExp2(0x12181f, 0.09);
 
     const camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 100);
     camera.position.set(0, 1.7, 3.4);
@@ -27,31 +27,60 @@ export default function TerrainRelief() {
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(w, h);
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    // Realistic shadows
+    renderer.shadowMap.enabled = true;
+    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    // Filmic tone mapping for natural stone look
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.1;
     container.appendChild(renderer.domElement);
 
-    const ambient = new THREE.AmbientLight(0xffffff, 0.45);
-    scene.add(ambient);
+    // Hemisphere light — blue-white sky above, warm earth below
+    const hemi = new THREE.HemisphereLight(0xc8dff0, 0x7a6548, 0.7);
+    scene.add(hemi);
 
-    const sun = new THREE.DirectionalLight(0xfff8f0, 1.5);
-    sun.position.set(3, 5, 2);
+    // Main sun — warm, angled, casts soft shadows
+    const sun = new THREE.DirectionalLight(0xfff2d8, 2.8);
+    sun.position.set(5, 7, 3);
+    sun.castShadow = true;
+    sun.shadow.mapSize.setScalar(2048);
+    sun.shadow.camera.left = -4;
+    sun.shadow.camera.right = 4;
+    sun.shadow.camera.top = 4;
+    sun.shadow.camera.bottom = -4;
+    sun.shadow.camera.near = 0.5;
+    sun.shadow.camera.far = 30;
+    sun.shadow.bias = -0.0005;
+    sun.shadow.radius = 2;
     scene.add(sun);
 
-    const fill = new THREE.DirectionalLight(0x8fb8d0, 0.35);
-    fill.position.set(-3, 2, -3);
+    // Cool fill from opposite side — simulates sky bounce
+    const fill = new THREE.DirectionalLight(0x8fafc0, 0.5);
+    fill.position.set(-4, 2, -2);
     scene.add(fill);
 
-    const gold = new THREE.DirectionalLight(0xb8935a, 0.2);
-    gold.position.set(0, -1, 3);
-    scene.add(gold);
+    // Subtle warm backlight from below — simulates ground reflection
+    const bounce = new THREE.DirectionalLight(0xc4a87a, 0.15);
+    bounce.position.set(0, -2, 2);
+    scene.add(bounce);
 
     const pivot = new THREE.Group();
     scene.add(pivot);
 
-    const mat = new THREE.MeshStandardMaterial({
-      color: 0x7a8fa0,
-      roughness: 0.9,
-      metalness: 0.02,
+    // Stone material — Mediterranean karst limestone
+    const stoneMat = new THREE.MeshStandardMaterial({
+      color: 0xa09880,   // warm gray limestone
+      roughness: 0.97,   // extremely rough — no specular highlight
+      metalness: 0.0,
     });
+
+    function applyMesh(geometry: THREE.BufferGeometry) {
+      geometry.computeVertexNormals();
+      const mesh = new THREE.Mesh(geometry, stoneMat);
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      pivot.add(mesh);
+    }
 
     const loader = new STLLoader();
     loader.load(
@@ -67,15 +96,8 @@ export default function TerrainRelief() {
         geometry.translate(-center.x, -center.y, -center.z);
         geometry.scale(scale, scale, scale);
         geometry.rotateX(-Math.PI / 2);
-        geometry.computeVertexNormals();
 
-        const wireMat = new THREE.LineBasicMaterial({ color: 0xb8935a, opacity: 0.07, transparent: true });
-        const wireGeo = new THREE.WireframeGeometry(geometry);
-        const wireframe = new THREE.LineSegments(wireGeo, wireMat);
-
-        const mesh = new THREE.Mesh(geometry, mat);
-        pivot.add(mesh);
-        pivot.add(wireframe);
+        applyMesh(geometry);
       },
       undefined,
       (err) => {
@@ -90,8 +112,6 @@ export default function TerrainRelief() {
       geo.rotateX(-Math.PI / 2);
 
       const pos = geo.attributes.position;
-      const colors: number[] = [];
-
       for (let i = 0; i < pos.count; i++) {
         const xn = pos.getX(i) / 2;
         const zn = pos.getZ(i) / 2;
@@ -102,30 +122,10 @@ export default function TerrainRelief() {
         const r3 = Math.exp(-((xn - 0.58) ** 2) * 6.5) * t * 0.65;
         const d = (Math.sin(xn * 8.7 + zn * 6.3) * 0.038 + Math.sin(xn * 3.2 - zn * 9.1) * 0.048) * t;
 
-        const hv = Math.max(0, r1 + r2 + r3 + d);
-        pos.setY(i, hv);
-
-        const lh = hv / 1.35;
-        if (lh < 0.04) colors.push(0.18, 0.24, 0.32);
-        else if (lh < 0.25) { const f = (lh - 0.04) / 0.21; colors.push(0.3 + f * 0.12, 0.36 + f * 0.06, 0.42); }
-        else if (lh < 0.65) { const f = (lh - 0.25) / 0.4; colors.push(0.42 + f * 0.14, 0.42, 0.46); }
-        else colors.push(0.62, 0.62, 0.65);
+        pos.setY(i, Math.max(0, r1 + r2 + r3 + d) - 0.35);
       }
 
-      geo.setAttribute('color', new THREE.Float32BufferAttribute(colors, 3));
-      geo.computeVertexNormals();
-
-      const vMat = new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 0.9, metalness: 0.02 });
-      const mesh = new THREE.Mesh(geo, vMat);
-      mesh.position.y = -0.35;
-
-      const wireGeo = new THREE.WireframeGeometry(geo);
-      const wireMat = new THREE.LineBasicMaterial({ color: 0xb8935a, opacity: 0.07, transparent: true });
-      const wireframe = new THREE.LineSegments(wireGeo, wireMat);
-      wireframe.position.y = -0.35;
-
-      pivot.add(mesh);
-      pivot.add(wireframe);
+      applyMesh(geo);
     }
 
     const onResize = () => {
@@ -148,7 +148,7 @@ export default function TerrainRelief() {
       cancelAnimationFrame(animId);
       window.removeEventListener('resize', onResize);
       renderer.dispose();
-      mat.dispose();
+      stoneMat.dispose();
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
       }

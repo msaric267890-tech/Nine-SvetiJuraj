@@ -3,18 +3,38 @@
 import { useT } from '@/lib/LangContext';
 import TerrainRelief from './TerrainRelief';
 
+const restaurants = [
+  { name: 'Konoba Kiko', dist: '50 m' },
+  { name: 'Konoba Gušti', dist: '200 m' },
+  { name: 'Pizzeria Adria', dist: '250 m' },
+];
+
+const beaches = [
+  { name: 'Plaža Sveti Juraj', dist: '30 m' },
+  { name: 'Plaža Rača', dist: '1,8 km' },
+  { name: 'Plaža Kalić', dist: '2,7 km' },
+  { name: 'Plaža Vlaška (za pse)', dist: '3,7 km' },
+  { name: 'Plaža Voda', dist: '7 km' },
+];
+
+const nature = [
+  { name: 'Park prirode Velebit', dist: '2 km' },
+  { name: 'Planina Vratnik', dist: '13 km' },
+  { name: 'NP Sjeverni Velebit', dist: '19 km' },
+];
+
 export default function Location() {
   const t = useT();
 
   const distances = [
-    { key: 'distBeach',   distance: '20 m',   icon: '🏖' },
-    { key: 'distKonoba',  distance: '50 m',   icon: '🍽' },
-    { key: 'distVelebit', distance: '2 km',   icon: '🌿' },
-    { key: 'distHuts',    distance: '8 km',   icon: '🏕' },
-    { key: 'distVratnik', distance: '13 km',  icon: '⛰' },
-    { key: 'distNatPark', distance: '19 km',  icon: '🏔' },
-    { key: 'distSenj',    distance: '15 km',  icon: '🏙' },
-    { key: 'distRijeka',  distance: '61 km',  icon: '✈' },
+    { key: 'distBeach',   distance: '20 m',  icon: '🏖' },
+    { key: 'distKonoba',  distance: '50 m',  icon: '🍽' },
+    { key: 'distVelebit', distance: '2 km',  icon: '🌿' },
+    { key: 'distHuts',    distance: '8 km',  icon: '🏕' },
+    { key: 'distVratnik', distance: '13 km', icon: '⛰' },
+    { key: 'distNatPark', distance: '19 km', icon: '🏔' },
+    { key: 'distSenj',    distance: '15 km', icon: '🏙' },
+    { key: 'distRijeka',  distance: '61 km', icon: '✈' },
   ] as const;
 
   return (
@@ -37,11 +57,11 @@ export default function Location() {
           {t('locationTitle')}
         </h2>
 
+        {/* Terrain + distances */}
         <div
           style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'start' }}
           className="location-grid"
         >
-          {/* 3D terrain */}
           <div
             style={{
               borderRadius: 4,
@@ -52,14 +72,7 @@ export default function Location() {
             }}
           >
             <TerrainRelief />
-            <div
-              style={{
-                position: 'absolute',
-                bottom: '0.9rem',
-                left: '1rem',
-                pointerEvents: 'none',
-              }}
-            >
+            <div style={{ position: 'absolute', bottom: '0.9rem', left: '1rem', pointerEvents: 'none' }}>
               <p style={{ fontSize: '0.62rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: '0.15rem' }}>
                 {t('locationRelief')}
               </p>
@@ -69,7 +82,6 @@ export default function Location() {
             </div>
           </div>
 
-          {/* Text + distances */}
           <div>
             <p style={{ fontSize: '0.78rem', color: 'var(--muted)', letterSpacing: '0.05em', marginBottom: '0.9rem', lineHeight: 1.7 }}>
               {t('locationPara1')}
@@ -82,29 +94,11 @@ export default function Location() {
               <tbody>
                 {distances.map(({ key, distance, icon }) => (
                   <tr key={key} style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-                    <td
-                      style={{
-                        padding: '0.65rem 0',
-                        color: 'var(--white)',
-                        fontSize: '0.85rem',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '0.6rem',
-                      }}
-                    >
+                    <td style={{ padding: '0.6rem 0', color: 'var(--white)', fontSize: '0.84rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                       <span style={{ opacity: 0.7 }}>{icon}</span>
                       {t(key)}
                     </td>
-                    <td
-                      style={{
-                        padding: '0.65rem 0',
-                        textAlign: 'right',
-                        fontFamily: 'var(--font-cormorant)',
-                        fontSize: '1.05rem',
-                        color: 'var(--gold-lt)',
-                        whiteSpace: 'nowrap',
-                      }}
-                    >
+                    <td style={{ padding: '0.6rem 0', textAlign: 'right', fontFamily: 'var(--font-cormorant)', fontSize: '1rem', color: 'var(--gold-lt)', whiteSpace: 'nowrap' }}>
                       {distance}
                     </td>
                   </tr>
@@ -113,11 +107,78 @@ export default function Location() {
             </table>
           </div>
         </div>
+
+        {/* Okolica — 3 columns */}
+        <div
+          style={{
+            marginTop: '4rem',
+            paddingTop: '3rem',
+            borderTop: '1px solid rgba(255,255,255,0.08)',
+          }}
+        >
+          <p style={{ fontSize: '0.72rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: '2rem', textAlign: 'center' }}>
+            {t('nearbyTitle')}
+          </p>
+
+          <div
+            style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '2rem' }}
+            className="nearby-grid"
+          >
+            {/* Restaurants */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <span style={{ fontSize: '1rem' }}>🍽</span>
+                <h3 style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--white)', opacity: 0.7, fontWeight: 400 }}>
+                  {t('nearbyRestaurants')}
+                </h3>
+              </div>
+              {restaurants.map((r) => (
+                <div key={r.name} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid rgba(255,255,255,0.06)', alignItems: 'baseline' }}>
+                  <span style={{ fontSize: '0.83rem', color: 'var(--white)', opacity: 0.75 }}>{r.name}</span>
+                  <span style={{ fontSize: '0.88rem', color: 'var(--gold-lt)', fontFamily: 'var(--font-cormorant)', whiteSpace: 'nowrap', marginLeft: '0.5rem' }}>{r.dist}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Beaches */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <span style={{ fontSize: '1rem' }}>🏖</span>
+                <h3 style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--white)', opacity: 0.7, fontWeight: 400 }}>
+                  {t('nearbyBeaches')}
+                </h3>
+              </div>
+              {beaches.map((b) => (
+                <div key={b.name} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid rgba(255,255,255,0.06)', alignItems: 'baseline' }}>
+                  <span style={{ fontSize: '0.83rem', color: 'var(--white)', opacity: 0.75 }}>{b.name}</span>
+                  <span style={{ fontSize: '0.88rem', color: 'var(--gold-lt)', fontFamily: 'var(--font-cormorant)', whiteSpace: 'nowrap', marginLeft: '0.5rem' }}>{b.dist}</span>
+                </div>
+              ))}
+            </div>
+
+            {/* Nature */}
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
+                <span style={{ fontSize: '1rem' }}>🌿</span>
+                <h3 style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--white)', opacity: 0.7, fontWeight: 400 }}>
+                  {t('nearbyNature')}
+                </h3>
+              </div>
+              {nature.map((n) => (
+                <div key={n.name} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.5rem 0', borderBottom: '1px solid rgba(255,255,255,0.06)', alignItems: 'baseline' }}>
+                  <span style={{ fontSize: '0.83rem', color: 'var(--white)', opacity: 0.75 }}>{n.name}</span>
+                  <span style={{ fontSize: '0.88rem', color: 'var(--gold-lt)', fontFamily: 'var(--font-cormorant)', whiteSpace: 'nowrap', marginLeft: '0.5rem' }}>{n.dist}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       <style>{`
         @media (max-width: 768px) {
           .location-grid { grid-template-columns: 1fr !important; gap: 2.5rem !important; }
+          .nearby-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
         }
       `}</style>
     </section>

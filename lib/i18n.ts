@@ -165,4 +165,10 @@ export const i18n = {
   footerPrivacy:   { HR: 'Privatnost', EN: 'Privacy', DE: 'Datenschutz', IT: 'Privacy', FR: 'Confidentialité', SL: 'Zasebnost', CS: 'Ochrana soukromí', PL: 'Prywatność', HU: 'Adatvédelem' } as T,
   footerTerms:     { HR: 'Uvjeti', EN: 'Terms', DE: 'AGB', IT: 'Termini', FR: 'Conditions', SL: 'Pogoji', CS: 'Podmínky', PL: 'Warunki', HU: 'Feltételek' } as T,
   footerNavBook:   { HR: 'Rezervacija', EN: 'Booking', DE: 'Reservierung', IT: 'Prenotazione', FR: 'Réservation', SL: 'Rezervacija', CS: 'Rezervace', PL: 'Rezerwacja', HU: 'Foglalás' } as T,
+
+  // Okolica
+  nearbyTitle:       { HR: 'Okolica', EN: 'Surroundings', DE: 'Umgebung', IT: 'Dintorni', FR: 'Environs', SL: 'Okolica', CS: 'Okolí', PL: 'Okolica', HU: 'Környék' } as T,
+  nearbyRestaurants: { HR: 'Restorani i kafići', EN: 'Restaurants & cafés', DE: 'Restaurants & Cafés', IT: 'Ristoranti e caffè', FR: 'Restaurants et cafés', SL: 'Restavracije in kavarne', CS: 'Restaurace a kavárny', PL: 'Restauracje i kawiarnie', HU: 'Éttermek és kávézók' } as T,
+  nearbyBeaches:     { HR: 'Plaže u okolici', EN: 'Nearby beaches', DE: 'Strände in der Umgebung', IT: 'Spiagge nelle vicinanze', FR: 'Plages à proximité', SL: 'Bližnje plaže', CS: 'Nedaleké pláže', PL: 'Pobliskie plaże', HU: 'Közeli strandok' } as T,
+  nearbyNature:      { HR: 'Prirodne ljepote', EN: 'Natural beauty', DE: 'Naturschönheiten', IT: 'Bellezze naturali', FR: 'Beautés naturelles', SL: 'Naravne lepote', CS: 'Přírodní krásy', PL: 'Piękno natury', HU: 'Természeti szépségek' } as T,
 };
