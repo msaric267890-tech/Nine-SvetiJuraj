@@ -74,34 +74,6 @@ export default function Hero() {
           maxWidth: 800,
         }}
       >
-        {/* Rating badge */}
-        <div
-          style={{
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '0.6rem',
-            border: '1px solid var(--gold)',
-            borderRadius: 2,
-            padding: '0.4rem 1rem',
-            marginBottom: '2rem',
-            fontSize: '0.75rem',
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            color: 'var(--gold-lt)',
-          }}
-        >
-          <span
-            style={{
-              fontFamily: 'var(--font-cormorant)',
-              fontSize: '1.1rem',
-              fontWeight: 400,
-            }}
-          >
-            8.9
-          </span>
-          <span>Booking.com</span>
-        </div>
-
         {/* Eyebrow */}
         <p
           style={{

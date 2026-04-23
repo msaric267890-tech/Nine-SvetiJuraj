@@ -1,6 +1,6 @@
 'use client';
 
-import ImageBrowser from '@/components/ImageBrowser';
+import PhotoGrid from '@/components/PhotoGrid';
 
 const amenities = [
   'Pet klimatiziranih soba',
@@ -43,7 +43,7 @@ export default function About() {
         className="about-grid"
       >
         {/* Gallery left */}
-        <ImageBrowser images={galleryImages} />
+        <PhotoGrid images={galleryImages} />
 
         {/* Text right */}
         <div>

@@ -1,13 +1,15 @@
 const distances = [
   { place: 'Plaža', distance: '20 m', icon: '🏖' },
   { place: 'Centar Svetog Jurja', distance: '300 m', icon: '🏘' },
+  { place: 'Park prirode Velebit', distance: '2 km', icon: '⛰' },
+  { place: 'Planinski domovi (Velebit)', distance: '8 km', icon: '🏕' },
+  { place: 'Velebitski botanički vrt', distance: '18 km', icon: '🌿' },
   { place: 'Senj', distance: '15 km', icon: '🏙' },
-  { place: 'Nacionalni park Paklenica', distance: '20 km', icon: '⛰' },
-  { place: 'Karlobag', distance: '34 km', icon: '🛣' },
-  { place: 'Rijeka (međunarodna luka)', distance: '80 km', icon: '⚓' },
+  { place: 'Rijeka', distance: '80 km', icon: '⚓' },
   { place: 'Zagreb', distance: '170 km', icon: '✈' },
-  { place: 'Plitvička jezera', distance: '95 km', icon: '🌊' },
 ];
+
+import TerrainRelief from './TerrainRelief';
 
 export default function Location() {
   return (
@@ -54,49 +56,52 @@ export default function Location() {
           }}
           className="location-grid"
         >
-          {/* Map / Panorama image */}
+          {/* 3D terrain relief */}
           <div
             style={{
               borderRadius: 4,
               overflow: 'hidden',
               aspectRatio: '4/3',
-              background: 'var(--ink2)',
+              background: '#12181f',
               position: 'relative',
             }}
           >
-            <img
-              src="/images/okolica.jpg"
-              alt="Sveti Juraj panorama"
-              style={{
-                width: '100%',
-                height: '100%',
-                objectFit: 'cover',
-                display: 'block',
-                opacity: 0.85,
-              }}
-            />
-            {/* Google Maps embed fallback overlay */}
-            <a
-              href="https://maps.google.com/?q=Sveti+Juraj,+Croatia"
-              target="_blank"
-              rel="noopener noreferrer"
+            <TerrainRelief />
+            <div
               style={{
                 position: 'absolute',
-                bottom: '1rem',
+                bottom: '0.9rem',
+                left: '1rem',
                 right: '1rem',
-                background: 'rgba(18,24,31,0.85)',
-                color: 'var(--gold-lt)',
-                fontSize: '0.72rem',
-                letterSpacing: '0.1em',
-                textTransform: 'uppercase',
-                textDecoration: 'none',
-                padding: '0.4rem 0.75rem',
-                borderRadius: 2,
-                border: '1px solid rgba(184,147,90,0.3)',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'flex-end',
+                pointerEvents: 'none',
               }}
             >
-              Otvori kartu →
-            </a>
+              <div>
+                <p
+                  style={{
+                    fontSize: '0.62rem',
+                    letterSpacing: '0.15em',
+                    textTransform: 'uppercase',
+                    color: 'var(--gold)',
+                    marginBottom: '0.15rem',
+                  }}
+                >
+                  3D reljef
+                </p>
+                <p
+                  style={{
+                    fontSize: '0.75rem',
+                    color: 'rgba(255,255,255,0.6)',
+                    letterSpacing: '0.04em',
+                  }}
+                >
+                  Velebitsko primorje
+                </p>
+              </div>
+            </div>
           </div>
 
           {/* Distances table */}
@@ -106,13 +111,25 @@ export default function Location() {
                 fontSize: '0.78rem',
                 color: 'var(--muted)',
                 letterSpacing: '0.05em',
+                marginBottom: '0.9rem',
+                lineHeight: 1.7,
+              }}
+            >
+              Sveti Juraj leži na podnožju Velebita — zaštićene planine koja se uzdiže
+              ravno iz mora. Iza kuće počinje divlja priroda: krške visoravni, kanjoni i
+              šume koje ljeti postaju dom planinarima, geologima i ljubiteljima tišine.
+            </p>
+            <p
+              style={{
+                fontSize: '0.78rem',
+                color: 'var(--muted)',
+                letterSpacing: '0.05em',
                 marginBottom: '1.5rem',
                 lineHeight: 1.7,
               }}
             >
-              Sveti Juraj leži između Senja i Karlobaga, na mirnom dijelu kvarnerske obale.
-              Okružen borovom šumom i planinom Velebit iza leđa, mjesto je idealno za
-              odmor bez gužve.
+              Staze za planinarenje dostupne su odmah iz mjesta, a planinski domovi na
+              Velebitu udaljeni su svega nekoliko kilometara pješačenjem.
             </p>
 
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
