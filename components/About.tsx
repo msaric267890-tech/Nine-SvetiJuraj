@@ -1,17 +1,7 @@
 'use client';
 
 import PhotoGrid from '@/components/PhotoGrid';
-
-const amenities = [
-  'Pet klimatiziranih soba',
-  'Privatna kupaonica u svakoj sobi',
-  'Pogled na more iz svake sobe',
-  'Plaža oko 20 m od ulaza',
-  'Besplatni parking',
-  'Besplatni WiFi',
-  'Ručnici i posteljina uključeni',
-  'Mirna lokacija bez gužve',
-];
+import { useT } from '@/lib/LangContext';
 
 const galleryImages = [
   { src: '/images/more.jpg', alt: 'Pogled na more' },
@@ -23,14 +13,15 @@ const galleryImages = [
 ];
 
 export default function About() {
+  const t = useT();
+
+  const amenityKeys = [
+    'amenity0', 'amenity1', 'amenity2', 'amenity3',
+    'amenity4', 'amenity5', 'amenity6', 'amenity7',
+  ] as const;
+
   return (
-    <section
-      id="about"
-      style={{
-        background: 'var(--off)',
-        padding: '6rem 2rem',
-      }}
-    >
+    <section id="about" style={{ background: 'var(--off)', padding: '6rem 2rem' }}>
       <div
         style={{
           maxWidth: 1100,
@@ -42,10 +33,8 @@ export default function About() {
         }}
         className="about-grid"
       >
-        {/* Gallery left */}
-        <PhotoGrid images={galleryImages} />
+        <PhotoGrid images={galleryImages} viewAllLabel={t('aboutViewPhotos')} />
 
-        {/* Text right */}
         <div>
           <p
             style={{
@@ -56,7 +45,7 @@ export default function About() {
               marginBottom: '1rem',
             }}
           >
-            O smještaju
+            {t('aboutLabel')}
           </p>
 
           <h2
@@ -69,35 +58,17 @@ export default function About() {
               marginBottom: '1.5rem',
             }}
           >
-            O objektu
+            {t('aboutTitle')}
           </h2>
 
-          <p
-            style={{
-              fontSize: '0.97rem',
-              lineHeight: 1.85,
-              color: 'var(--muted)',
-              marginBottom: '1.2rem',
-            }}
-          >
-            Objekt Nine nalazi se u Svetom Jurju, malom primorskom mjestu na Kvarneru.
-            Pet klimatiziranih soba s privatnom kupaonicom, svaka s pogledom prema moru.
-            Plaža je dvadesetak metara od ulaza.
+          <p style={{ fontSize: '0.97rem', lineHeight: 1.85, color: 'var(--muted)', marginBottom: '1.2rem' }}>
+            {t('aboutPara1')}
           </p>
 
-          <p
-            style={{
-              fontSize: '0.97rem',
-              lineHeight: 1.85,
-              color: 'var(--muted)',
-              marginBottom: '2.5rem',
-            }}
-          >
-            Besplatan parking uz objekt. WiFi u svim sobama.
-            Ručnici i posteljina uključeni.
+          <p style={{ fontSize: '0.97rem', lineHeight: 1.85, color: 'var(--muted)', marginBottom: '2.5rem' }}>
+            {t('aboutPara2')}
           </p>
 
-          {/* Amenities checklist */}
           <ul
             style={{
               listStyle: 'none',
@@ -106,9 +77,9 @@ export default function About() {
               gap: '0.6rem 1rem',
             }}
           >
-            {amenities.map((item) => (
+            {amenityKeys.map((key) => (
               <li
-                key={item}
+                key={key}
                 style={{
                   display: 'flex',
                   alignItems: 'flex-start',
@@ -118,23 +89,11 @@ export default function About() {
                   lineHeight: 1.5,
                 }}
               >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 14 14"
-                  fill="none"
-                  style={{ flexShrink: 0, marginTop: 3 }}
-                >
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" style={{ flexShrink: 0, marginTop: 3 }}>
                   <circle cx="7" cy="7" r="6.5" stroke="var(--gold)" />
-                  <path
-                    d="M4 7l2 2 4-4"
-                    stroke="var(--gold)"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
+                  <path d="M4 7l2 2 4-4" stroke="var(--gold)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-                {item}
+                {t(key)}
               </li>
             ))}
           </ul>
@@ -143,10 +102,7 @@ export default function About() {
 
       <style>{`
         @media (max-width: 768px) {
-          .about-grid {
-            grid-template-columns: 1fr !important;
-            gap: 3rem !important;
-          }
+          .about-grid { grid-template-columns: 1fr !important; gap: 3rem !important; }
         }
       `}</style>
     </section>

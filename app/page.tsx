@@ -6,6 +6,7 @@ import Reviews from '@/components/Reviews';
 import Location from '@/components/Location';
 import BookCta from '@/components/BookCta';
 import Footer from '@/components/Footer';
+import HostPanel from '@/components/HostPanel';
 
 export default function Home() {
   return (
@@ -20,6 +21,7 @@ export default function Home() {
         <BookCta />
       </main>
       <Footer />
+      <HostPanel />
     </>
   );
 }

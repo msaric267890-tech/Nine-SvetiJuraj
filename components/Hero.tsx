@@ -2,9 +2,11 @@
 
 import Image from 'next/image';
 import { useEffect, useRef } from 'react';
+import { useT } from '@/lib/LangContext';
 
 export default function Hero() {
   const bgRef = useRef<HTMLDivElement>(null);
+  const t = useT();
 
   useEffect(() => {
     const onScroll = () => {
@@ -29,7 +31,6 @@ export default function Hero() {
         justifyContent: 'center',
       }}
     >
-      {/* Parallax background */}
       <div
         ref={bgRef}
         style={{
@@ -46,25 +47,18 @@ export default function Hero() {
           priority
           quality={90}
           sizes="100vw"
-          style={{
-            objectFit: 'cover',
-            objectPosition: 'center',
-            filter: 'contrast(1.03) saturate(1.02)',
-          }}
+          style={{ objectFit: 'cover', objectPosition: 'center', filter: 'contrast(1.03) saturate(1.02)' }}
         />
       </div>
 
-      {/* Gradient overlay */}
       <div
         style={{
           position: 'absolute',
           inset: 0,
-          background:
-            'linear-gradient(to bottom, rgba(18,24,31,0.55) 0%, rgba(18,24,31,0.3) 50%, rgba(18,24,31,0.75) 100%)',
+          background: 'linear-gradient(to bottom, rgba(18,24,31,0.55) 0%, rgba(18,24,31,0.3) 50%, rgba(18,24,31,0.75) 100%)',
         }}
       />
 
-      {/* Content */}
       <div
         style={{
           position: 'relative',
@@ -74,21 +68,6 @@ export default function Hero() {
           maxWidth: 800,
         }}
       >
-        {/* Eyebrow */}
-        <p
-          style={{
-            fontSize: '0.78rem',
-            letterSpacing: '0.25em',
-            textTransform: 'uppercase',
-            color: 'var(--gold-lt)',
-            marginBottom: '1rem',
-            opacity: 0.9,
-          }}
-        >
-          Sveti Juraj · Hrvatska
-        </p>
-
-        {/* Main title */}
         <h1
           style={{
             fontFamily: 'var(--font-cormorant)',
@@ -102,7 +81,6 @@ export default function Hero() {
           Nine Sveti Juraj
         </h1>
 
-        {/* Tagline */}
         <p
           style={{
             fontSize: 'clamp(0.95rem, 2vw, 1.15rem)',
@@ -112,10 +90,9 @@ export default function Hero() {
             marginBottom: '2.5rem',
           }}
         >
-          Privatni smještaj uz more · Sveti Juraj, Hrvatska
+          {t('heroTagline')}
         </p>
 
-        {/* CTA */}
         <a
           href="#book"
           style={{
@@ -131,18 +108,13 @@ export default function Hero() {
             transition: 'background 0.25s',
             borderRadius: 2,
           }}
-          onMouseEnter={(e) =>
-            ((e.target as HTMLElement).style.background = 'var(--gold-lt)')
-          }
-          onMouseLeave={(e) =>
-            ((e.target as HTMLElement).style.background = 'var(--gold)')
-          }
+          onMouseEnter={(e) => ((e.target as HTMLElement).style.background = 'var(--gold-lt)')}
+          onMouseLeave={(e) => ((e.target as HTMLElement).style.background = 'var(--gold)')}
         >
-          Rezerviraj
+          {t('heroCta')}
         </a>
       </div>
 
-      {/* Scroll indicator */}
       <div
         style={{
           position: 'absolute',
@@ -157,13 +129,7 @@ export default function Hero() {
           color: 'var(--white)',
         }}
       >
-        <span
-          style={{
-            fontSize: '0.65rem',
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-          }}
-        >
+        <span style={{ fontSize: '0.65rem', letterSpacing: '0.2em', textTransform: 'uppercase' }}>
           Scroll
         </span>
         <svg width="14" height="20" viewBox="0 0 14 20" fill="none">

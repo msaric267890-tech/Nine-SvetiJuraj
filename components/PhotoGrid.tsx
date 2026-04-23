@@ -5,17 +5,21 @@ import { useEffect, useState } from 'react';
 
 type Img = { src: string; alt: string };
 
-export default function PhotoGrid({ images }: { images: Img[] }) {
+export default function PhotoGrid({
+  images,
+  viewAllLabel = 'Pogledaj sve fotografije',
+}: {
+  images: Img[];
+  viewAllLabel?: string;
+}) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
 
   const extra = Math.max(0, images.length - 5);
 
   const open = (i: number) => setLightboxIndex(i);
   const close = () => setLightboxIndex(null);
-  const prev = () =>
-    setLightboxIndex((p) => (p !== null ? (p - 1 + images.length) % images.length : 0));
-  const next = () =>
-    setLightboxIndex((p) => (p !== null ? (p + 1) % images.length : 0));
+  const prev = () => setLightboxIndex((p) => (p !== null ? (p - 1 + images.length) % images.length : 0));
+  const next = () => setLightboxIndex((p) => (p !== null ? (p + 1) % images.length : 0));
 
   useEffect(() => {
     if (lightboxIndex === null) return;
@@ -59,13 +63,7 @@ export default function PhotoGrid({ images }: { images: Img[] }) {
         </button>
 
         {/* 4 small images */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '0.5rem',
-          }}
-        >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '0.5rem' }}>
           {images.slice(1, 5).map((img, idx) => {
             const realIdx = idx + 1;
             const isLast = idx === 3 && extra > 0;
@@ -127,7 +125,7 @@ export default function PhotoGrid({ images }: { images: Img[] }) {
                         color: 'var(--gold-lt)',
                       }}
                     >
-                      fotografija
+                      foto
                     </span>
                   </div>
                 )}
@@ -151,10 +149,9 @@ export default function PhotoGrid({ images }: { images: Img[] }) {
             cursor: 'pointer',
             borderRadius: 2,
             width: '100%',
-            transition: 'border-color 0.2s',
           }}
         >
-          Pogledaj sve fotografije ({images.length})
+          {viewAllLabel} ({images.length})
         </button>
       </div>
 
@@ -174,7 +171,6 @@ export default function PhotoGrid({ images }: { images: Img[] }) {
           }}
           onClick={close}
         >
-          {/* Close */}
           <button
             type="button"
             onClick={close}
@@ -196,7 +192,6 @@ export default function PhotoGrid({ images }: { images: Img[] }) {
             ×
           </button>
 
-          {/* Prev */}
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); prev(); }}
@@ -220,7 +215,6 @@ export default function PhotoGrid({ images }: { images: Img[] }) {
             ‹
           </button>
 
-          {/* Image */}
           <div
             onClick={(e) => e.stopPropagation()}
             style={{
@@ -242,7 +236,6 @@ export default function PhotoGrid({ images }: { images: Img[] }) {
             />
           </div>
 
-          {/* Next */}
           <button
             type="button"
             onClick={(e) => { e.stopPropagation(); next(); }}
@@ -266,7 +259,6 @@ export default function PhotoGrid({ images }: { images: Img[] }) {
             ›
           </button>
 
-          {/* Counter */}
           <div
             style={{
               position: 'absolute',

@@ -1,37 +1,27 @@
-const distances = [
-  { place: 'Plaža', distance: '20 m', icon: '🏖' },
-  { place: 'Centar Svetog Jurja', distance: '300 m', icon: '🏘' },
-  { place: 'Park prirode Velebit', distance: '2 km', icon: '⛰' },
-  { place: 'Planinski domovi (Velebit)', distance: '8 km', icon: '🏕' },
-  { place: 'Velebitski botanički vrt', distance: '18 km', icon: '🌿' },
-  { place: 'Senj', distance: '15 km', icon: '🏙' },
-  { place: 'Rijeka', distance: '80 km', icon: '⚓' },
-  { place: 'Zagreb', distance: '170 km', icon: '✈' },
-];
+'use client';
 
+import { useT } from '@/lib/LangContext';
 import TerrainRelief from './TerrainRelief';
 
 export default function Location() {
+  const t = useT();
+
+  const distances = [
+    { key: 'distBeach',   distance: '20 m',   icon: '🏖' },
+    { key: 'distKonoba',  distance: '50 m',   icon: '🍽' },
+    { key: 'distVelebit', distance: '2 km',   icon: '🌿' },
+    { key: 'distHuts',    distance: '8 km',   icon: '🏕' },
+    { key: 'distVratnik', distance: '13 km',  icon: '⛰' },
+    { key: 'distNatPark', distance: '19 km',  icon: '🏔' },
+    { key: 'distSenj',    distance: '15 km',  icon: '🏙' },
+    { key: 'distRijeka',  distance: '61 km',  icon: '✈' },
+  ] as const;
+
   return (
-    <section
-      id="location"
-      style={{
-        background: 'var(--ink)',
-        padding: '6rem 2rem',
-      }}
-    >
+    <section id="location" style={{ background: 'var(--ink)', padding: '6rem 2rem' }}>
       <div style={{ maxWidth: 1100, margin: '0 auto' }}>
-        <p
-          style={{
-            fontSize: '0.72rem',
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color: 'var(--gold)',
-            marginBottom: '0.75rem',
-            textAlign: 'center',
-          }}
-        >
-          Lokacija
+        <p style={{ fontSize: '0.72rem', letterSpacing: '0.2em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: '0.75rem', textAlign: 'center' }}>
+          {t('locationLabel')}
         </p>
         <h2
           style={{
@@ -44,19 +34,14 @@ export default function Location() {
             lineHeight: 1.1,
           }}
         >
-          Sveti Juraj — Velebitsko primorje
+          {t('locationTitle')}
         </h2>
 
         <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: '4rem',
-            alignItems: 'start',
-          }}
+          style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4rem', alignItems: 'start' }}
           className="location-grid"
         >
-          {/* 3D terrain relief */}
+          {/* 3D terrain */}
           <div
             style={{
               borderRadius: 4,
@@ -72,91 +57,47 @@ export default function Location() {
                 position: 'absolute',
                 bottom: '0.9rem',
                 left: '1rem',
-                right: '1rem',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'flex-end',
                 pointerEvents: 'none',
               }}
             >
-              <div>
-                <p
-                  style={{
-                    fontSize: '0.62rem',
-                    letterSpacing: '0.15em',
-                    textTransform: 'uppercase',
-                    color: 'var(--gold)',
-                    marginBottom: '0.15rem',
-                  }}
-                >
-                  3D reljef
-                </p>
-                <p
-                  style={{
-                    fontSize: '0.75rem',
-                    color: 'rgba(255,255,255,0.6)',
-                    letterSpacing: '0.04em',
-                  }}
-                >
-                  Velebitsko primorje
-                </p>
-              </div>
+              <p style={{ fontSize: '0.62rem', letterSpacing: '0.15em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: '0.15rem' }}>
+                {t('locationRelief')}
+              </p>
+              <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', letterSpacing: '0.04em' }}>
+                Velebitsko primorje
+              </p>
             </div>
           </div>
 
-          {/* Distances table */}
+          {/* Text + distances */}
           <div>
-            <p
-              style={{
-                fontSize: '0.78rem',
-                color: 'var(--muted)',
-                letterSpacing: '0.05em',
-                marginBottom: '0.9rem',
-                lineHeight: 1.7,
-              }}
-            >
-              Sveti Juraj leži na podnožju Velebita — zaštićene planine koja se uzdiže
-              ravno iz mora. Iza kuće počinje divlja priroda: krške visoravni, kanjoni i
-              šume koje ljeti postaju dom planinarima, geologima i ljubiteljima tišine.
+            <p style={{ fontSize: '0.78rem', color: 'var(--muted)', letterSpacing: '0.05em', marginBottom: '0.9rem', lineHeight: 1.7 }}>
+              {t('locationPara1')}
             </p>
-            <p
-              style={{
-                fontSize: '0.78rem',
-                color: 'var(--muted)',
-                letterSpacing: '0.05em',
-                marginBottom: '1.5rem',
-                lineHeight: 1.7,
-              }}
-            >
-              Staze za planinarenje dostupne su odmah iz mjesta, a planinski domovi na
-              Velebitu udaljeni su svega nekoliko kilometara pješačenjem.
+            <p style={{ fontSize: '0.78rem', color: 'var(--muted)', letterSpacing: '0.05em', marginBottom: '1.5rem', lineHeight: 1.7 }}>
+              {t('locationPara2')}
             </p>
 
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <tbody>
-                {distances.map((row, i) => (
-                  <tr
-                    key={i}
-                    style={{
-                      borderBottom: '1px solid rgba(255,255,255,0.07)',
-                    }}
-                  >
+                {distances.map(({ key, distance, icon }) => (
+                  <tr key={key} style={{ borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
                     <td
                       style={{
-                        padding: '0.75rem 0',
+                        padding: '0.65rem 0',
                         color: 'var(--white)',
-                        fontSize: '0.87rem',
+                        fontSize: '0.85rem',
                         display: 'flex',
                         alignItems: 'center',
                         gap: '0.6rem',
                       }}
                     >
-                      <span style={{ opacity: 0.7 }}>{row.icon}</span>
-                      {row.place}
+                      <span style={{ opacity: 0.7 }}>{icon}</span>
+                      {t(key)}
                     </td>
                     <td
                       style={{
-                        padding: '0.75rem 0',
+                        padding: '0.65rem 0',
                         textAlign: 'right',
                         fontFamily: 'var(--font-cormorant)',
                         fontSize: '1.05rem',
@@ -164,7 +105,7 @@ export default function Location() {
                         whiteSpace: 'nowrap',
                       }}
                     >
-                      {row.distance}
+                      {distance}
                     </td>
                   </tr>
                 ))}

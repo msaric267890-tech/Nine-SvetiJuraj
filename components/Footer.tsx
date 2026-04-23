@@ -1,8 +1,19 @@
 'use client';
 
+import { useT } from '@/lib/LangContext';
+
 const year = new Date().getFullYear();
 
 export default function Footer() {
+  const t = useT();
+
+  const navLinks = [
+    { labelKey: 'navAccommodation' as const, href: '#about' },
+    { labelKey: 'navReviews' as const, href: '#reviews' },
+    { labelKey: 'navLocation' as const, href: '#location' },
+    { labelKey: 'footerNavBook' as const, href: '#book' },
+  ];
+
   return (
     <footer
       style={{
@@ -12,23 +23,12 @@ export default function Footer() {
         borderTop: '1px solid rgba(184,147,90,0.2)',
       }}
     >
-      <div
-        style={{
-          maxWidth: 1100,
-          margin: '0 auto',
-        }}
-      >
-        {/* Columns */}
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
         <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 1fr)',
-            gap: '3rem',
-            marginBottom: '3rem',
-          }}
+          style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '3rem', marginBottom: '3rem' }}
           className="footer-grid"
         >
-          {/* Col 1 — Brand */}
+          {/* Brand */}
           <div>
             <div
               style={{
@@ -42,28 +42,13 @@ export default function Footer() {
             >
               Nine
             </div>
-            <p
-              style={{
-                fontSize: '0.82rem',
-                lineHeight: 1.75,
-                color: 'var(--muted)',
-                marginBottom: '1.25rem',
-              }}
-            >
-              Privatni smještaj uz more<br />
+            <p style={{ fontSize: '0.82rem', lineHeight: 1.75, color: 'var(--muted)', marginBottom: '1.25rem' }}>
+              {t('footerTagline')}<br />
               Sveti Juraj, Hrvatska
               <br />
-              <span style={{ color: 'var(--gold-lt)' }}>
-                Five rooms. Twenty metres from the sea.
-              </span>
+              <span style={{ color: 'var(--gold-lt)' }}>{t('footerSubtag')}</span>
             </p>
-            <div
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.5rem',
-              }}
-            >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <span
                 style={{
                   background: 'var(--ink)',
@@ -77,134 +62,64 @@ export default function Footer() {
               >
                 8.9
               </span>
-              <span style={{ fontSize: '0.72rem', color: 'var(--muted)', letterSpacing: '0.08em' }}>
-                Booking.com
-              </span>
+              <span style={{ fontSize: '0.72rem', color: 'var(--muted)', letterSpacing: '0.08em' }}>Booking.com</span>
             </div>
           </div>
 
-          {/* Col 2 — Navigation */}
+          {/* Navigation */}
           <div>
-            <h3
-              style={{
-                fontSize: '0.7rem',
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                color: 'var(--gold)',
-                marginBottom: '1rem',
-              }}
-            >
-              Navigacija
+            <h3 style={{ fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: '1rem' }}>
+              {t('footerNav')}
             </h3>
             <ul style={{ listStyle: 'none' }}>
-              {[
-                { label: 'Smještaj', href: '#about' },
-                { label: 'Recenzije', href: '#reviews' },
-                { label: 'Lokacija', href: '#location' },
-                { label: 'Rezervacija', href: '#book' },
-              ].map((l) => (
+              {navLinks.map((l) => (
                 <li key={l.href} style={{ marginBottom: '0.5rem' }}>
                   <a
                     href={l.href}
-                    style={{
-                      color: 'var(--muted)',
-                      textDecoration: 'none',
-                      fontSize: '0.85rem',
-                      transition: 'color 0.2s',
-                    }}
-                    onMouseEnter={(e) =>
-                      ((e.target as HTMLElement).style.color = 'var(--gold-lt)')
-                    }
-                    onMouseLeave={(e) =>
-                      ((e.target as HTMLElement).style.color = 'var(--muted)')
-                    }
+                    style={{ color: 'var(--muted)', textDecoration: 'none', fontSize: '0.85rem', transition: 'color 0.2s' }}
+                    onMouseEnter={(e) => ((e.target as HTMLElement).style.color = 'var(--gold-lt)')}
+                    onMouseLeave={(e) => ((e.target as HTMLElement).style.color = 'var(--muted)')}
                   >
-                    {l.label}
+                    {t(l.labelKey)}
                   </a>
                 </li>
               ))}
             </ul>
           </div>
 
-          {/* Col 3 — Contact */}
+          {/* Contact */}
           <div>
-            <h3
-              style={{
-                fontSize: '0.7rem',
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                color: 'var(--gold)',
-                marginBottom: '1rem',
-              }}
-            >
-              Kontakt
+            <h3 style={{ fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: '1rem' }}>
+              {t('footerContact')}
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-              <a
-                href="mailto:info@nine-svetijuraj.hr"
-                style={{
-                  color: 'var(--muted)',
-                  textDecoration: 'none',
-                  fontSize: '0.85rem',
-                }}
-              >
+              <a href="mailto:info@nine-svetijuraj.hr" style={{ color: 'var(--muted)', textDecoration: 'none', fontSize: '0.85rem' }}>
                 info@nine-svetijuraj.hr
               </a>
-              <a
-                href="tel:+385912345678"
-                style={{
-                  color: 'var(--muted)',
-                  textDecoration: 'none',
-                  fontSize: '0.85rem',
-                }}
-              >
+              <a href="tel:+385912345678" style={{ color: 'var(--muted)', textDecoration: 'none', fontSize: '0.85rem' }}>
                 +385 91 234 5678
               </a>
               <span style={{ color: 'var(--muted)', fontSize: '0.85rem' }}>
-                Sveti Juraj 23, 53270<br />
-                Senj, Hrvatska
+                Sveti Juraj 23, 53270<br />Senj, Hrvatska
               </span>
             </div>
           </div>
 
-          {/* Col 4 — Platforms */}
+          {/* Platforms */}
           <div>
-            <h3
-              style={{
-                fontSize: '0.7rem',
-                letterSpacing: '0.18em',
-                textTransform: 'uppercase',
-                color: 'var(--gold)',
-                marginBottom: '1rem',
-              }}
-            >
-              Platforme
+            <h3 style={{ fontSize: '0.7rem', letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--gold)', marginBottom: '1rem' }}>
+              {t('footerPlatforms')}
             </h3>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
-              {[
-                { label: 'Booking.com', href: 'https://www.booking.com' },
-                { label: 'Airbnb', href: 'https://www.airbnb.com' },
-              ].map((p) => (
+              {[{ label: 'Booking.com', href: 'https://www.booking.com' }, { label: 'Airbnb', href: 'https://www.airbnb.com' }].map((p) => (
                 <a
                   key={p.label}
                   href={p.href}
                   target="_blank"
                   rel="noopener noreferrer"
-                  style={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: '0.4rem',
-                    color: 'var(--muted)',
-                    textDecoration: 'none',
-                    fontSize: '0.85rem',
-                    transition: 'color 0.2s',
-                  }}
-                  onMouseEnter={(e) =>
-                    ((e.currentTarget as HTMLElement).style.color = 'var(--gold-lt)')
-                  }
-                  onMouseLeave={(e) =>
-                    ((e.currentTarget as HTMLElement).style.color = 'var(--muted)')
-                  }
+                  style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--muted)', textDecoration: 'none', fontSize: '0.85rem', transition: 'color 0.2s' }}
+                  onMouseEnter={(e) => ((e.currentTarget as HTMLElement).style.color = 'var(--gold-lt)')}
+                  onMouseLeave={(e) => ((e.currentTarget as HTMLElement).style.color = 'var(--muted)')}
                 >
                   {p.label}
                   <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
@@ -216,7 +131,6 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Bottom bar */}
         <div
           style={{
             borderTop: '1px solid rgba(255,255,255,0.06)',
@@ -229,25 +143,19 @@ export default function Footer() {
           }}
         >
           <p style={{ fontSize: '0.75rem', color: 'var(--muted)', opacity: 0.6 }}>
-            © {year} Nine Sveti Juraj. Sva prava pridržana.
+            © {year} Nine Sveti Juraj. {t('footerRights')}
           </p>
           <div style={{ display: 'flex', gap: '1.5rem' }}>
             {[
-              { label: 'Privatnost', href: '#' },
-              { label: 'Uvjeti', href: '#' },
+              { labelKey: 'footerPrivacy' as const },
+              { labelKey: 'footerTerms' as const },
             ].map((l) => (
               <a
-                key={l.label}
-                href={l.href}
-                style={{
-                  fontSize: '0.72rem',
-                  color: 'var(--muted)',
-                  textDecoration: 'none',
-                  opacity: 0.55,
-                  letterSpacing: '0.05em',
-                }}
+                key={l.labelKey}
+                href="#"
+                style={{ fontSize: '0.72rem', color: 'var(--muted)', textDecoration: 'none', opacity: 0.55, letterSpacing: '0.05em' }}
               >
-                {l.label}
+                {t(l.labelKey)}
               </a>
             ))}
           </div>

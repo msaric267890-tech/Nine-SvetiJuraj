@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DM_Sans, Cormorant } from "next/font/google";
+import { LangProvider } from "@/lib/LangContext";
 import "./globals.css";
 
 const dmSans = DM_Sans({
@@ -27,7 +28,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="hr" className={`${dmSans.variable} ${cormorant.variable}`}>
-      <body>{children}</body>
+      <body>
+        <LangProvider>{children}</LangProvider>
+      </body>
     </html>
   );
 }

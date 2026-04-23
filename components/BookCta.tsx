@@ -1,6 +1,10 @@
 'use client';
 
+import { useT } from '@/lib/LangContext';
+
 export default function BookCta() {
+  const t = useT();
+
   return (
     <section
       id="book"
@@ -12,7 +16,6 @@ export default function BookCta() {
         textAlign: 'center',
       }}
     >
-      {/* Background image */}
       <div
         style={{
           position: 'absolute',
@@ -23,8 +26,6 @@ export default function BookCta() {
           opacity: 0.2,
         }}
       />
-
-      {/* Gradient overlay */}
       <div
         style={{
           position: 'absolute',
@@ -32,8 +33,6 @@ export default function BookCta() {
           background: 'radial-gradient(ellipse at center, transparent 0%, var(--ink2) 75%)',
         }}
       />
-
-      {/* Gold top line */}
       <div
         style={{
           position: 'absolute',
@@ -56,7 +55,7 @@ export default function BookCta() {
             marginBottom: '1rem',
           }}
         >
-          Rezervacija
+          {t('bookLabel')}
         </p>
 
         <h2
@@ -67,27 +66,19 @@ export default function BookCta() {
             color: 'var(--white)',
             lineHeight: 1.15,
             marginBottom: '1.25rem',
+            whiteSpace: 'nowrap',
           }}
         >
-          Rezervirajte<br />
+          {t('bookTitle1')}{' '}
           <span style={{ fontStyle: 'italic', color: 'var(--gold-lt)' }}>
-            direktno
+            {t('bookTitle2')}
           </span>
         </h2>
 
-        <p
-          style={{
-            fontSize: '0.95rem',
-            lineHeight: 1.8,
-            color: 'var(--muted)',
-            marginBottom: '3rem',
-          }}
-        >
-          Za rezervaciju nas kontaktirajte mailom ili telefonom.
-          Odgovaramo brzo.
+        <p style={{ fontSize: '0.95rem', lineHeight: 1.8, color: 'var(--muted)', marginBottom: '3rem' }}>
+          {t('bookPara')}
         </p>
 
-        {/* Contact cards */}
         <div
           style={{
             display: 'flex',
@@ -159,7 +150,6 @@ export default function BookCta() {
           </a>
         </div>
 
-        {/* Booking.com button */}
         <a
           href="https://www.booking.com"
           target="_blank"
@@ -177,14 +167,10 @@ export default function BookCta() {
             borderRadius: 2,
             transition: 'background 0.25s',
           }}
-          onMouseEnter={(e) =>
-            ((e.target as HTMLElement).style.background = 'var(--gold-lt)')
-          }
-          onMouseLeave={(e) =>
-            ((e.target as HTMLElement).style.background = 'var(--gold)')
-          }
+          onMouseEnter={(e) => ((e.target as HTMLElement).style.background = 'var(--gold-lt)')}
+          onMouseLeave={(e) => ((e.target as HTMLElement).style.background = 'var(--gold)')}
         >
-          Rezerviraj na Booking.com
+          {t('bookBtn')}
         </a>
       </div>
     </section>
