@@ -80,26 +80,21 @@ function yymmdd(raw: string, future = false) {
 
 function clean(s: string) { return s.replace(/</g, ' ').replace(/\s+/g, ' ').trim(); }
 
-// Robust name split: OCR often reads '<<' as 'CC', 'KK', 'GG', etc.
+// Robust name split: OCR often reads '<<' as other chars
 function splitNames(nameField: string): [string, string] {
   // 1. Try exact '<<'
   let idx = nameField.indexOf('<<');
   if (idx > 0) {
     return [nameField.slice(0, idx), nameField.slice(idx + 2).split('<<')[0]];
   }
-  // 2. Normalize: treat any non-alpha char as '<', then re-try
+  // 2. Normalize any non-alpha to '<', re-try (catches noise chars between <<)
   const norm = nameField.replace(/[^A-Z]/g, '<');
   idx = norm.indexOf('<<');
   if (idx > 0) {
     return [norm.slice(0, idx), norm.slice(idx + 2).split('<<')[0]];
   }
-  // 3. Detect OCR substitutes for '<<': two consecutive identical non-vowel letters
-  const m = nameField.match(/^([A-Z<]+?)([B-DF-HJ-NP-TV-Z])\2([A-Z<]+)/);
-  if (m && m[1].length > 0) {
-    return [m[1].replace(/<+$/, ''), m[3]];
-  }
-  // 4. Fallback — can't detect separator
-  return ['', nameField];
+  // 3. Fallback — return everything as given name, host can edit manually
+  return ['', clean(nameField)];
 }
 
 function parseMRZ(raw: string): Partial<Guest> | null {
@@ -116,7 +111,8 @@ function parseMRZ(raw: string): Partial<Guest> | null {
     return { surname: clean(sur), givenName: clean(giv), dob: yymmdd(l2.slice(13, 19)), sex: l2[20] === 'F' ? 'F' : 'M', docType: 'P', docNumber: fixDigits(l2.slice(0, 9)).replace(/</g, ''), expiry: yymmdd(l2.slice(21, 27), true), nationality: nat, residenceCountry: nat };
   }
 
-  const td1 = lines.filter(l => l.length >= 28 && l.length <= 32);
+  // <= 45 to accept TD1 lines with OCR noise (standard is 30, but OCR adds chars)
+  const td1 = lines.filter(l => l.length >= 28 && l.length <= 45);
   if (td1.length >= 3) {
     const l1 = td1[0].padEnd(30, '<'), l2 = td1[1].padEnd(30, '<'), l3 = td1[2].padEnd(30, '<');
     const [sur, giv] = splitNames(l3);
@@ -135,6 +131,8 @@ export default function HostPanel() {
   const [pinLoading, setPinLoading] = useState(false);
   const [guest, setGuest] = useState<Guest>(emptyGuest());
   const [ocrErr, setOcrErr] = useState(false);
+  const [ocrRaw, setOcrRaw] = useState('');
+  const [autoProgress, setAutoProgress] = useState(0); // 0-3 stable frames
   const [submitState, setSubmitState] = useState<SubmitState>('idle');
   const [submitMsg, setSubmitMsg] = useState('');
 
@@ -148,6 +146,8 @@ export default function HostPanel() {
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
+  const captureRef = useRef<() => Promise<void>>(async () => {});
+  const autoProgressRef = useRef(0);
 
   // ── Auth ───────────────────────────────────────────────────────────────────
 
@@ -232,6 +232,41 @@ export default function HostPanel() {
     }
   };
 
+  // ── Auto-capture ──────────────────────────────────────────────────────────
+
+  useEffect(() => {
+    if (screen !== 'camera') { setAutoProgress(0); autoProgressRef.current = 0; return; }
+    autoProgressRef.current = 0;
+    setAutoProgress(0);
+
+    const id = setInterval(() => {
+      const v = videoRef.current;
+      if (!v || v.readyState < 2 || v.videoWidth === 0) return;
+      const W = 200, H = 40;
+      const tmp = document.createElement('canvas');
+      tmp.width = W; tmp.height = H;
+      const ctx = tmp.getContext('2d');
+      if (!ctx) return;
+      ctx.drawImage(v, 0, Math.floor(v.videoHeight * 0.70), v.videoWidth, Math.floor(v.videoHeight * 0.25), 0, 0, W, H);
+      const px = ctx.getImageData(0, 0, W, H).data;
+      let sum = 0, sum2 = 0;
+      for (let i = 0; i < px.length; i += 4) {
+        const lum = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
+        sum += lum; sum2 += lum * lum;
+      }
+      const n = W * H;
+      const variance = sum2 / n - (sum / n) ** 2;
+      if (variance > 400) {
+        autoProgressRef.current++;
+        setAutoProgress(Math.min(autoProgressRef.current, 3));
+        if (autoProgressRef.current >= 3) { clearInterval(id); captureRef.current(); }
+      } else {
+        autoProgressRef.current = 0; setAutoProgress(0);
+      }
+    }, 500);
+    return () => clearInterval(id);
+  }, [screen]);
+
   // ── Camera ─────────────────────────────────────────────────────────────────
 
   const openCamera = async () => {
@@ -246,6 +281,7 @@ export default function HostPanel() {
   const stopCamera = () => { streamRef.current?.getTracks().forEach(t => t.stop()); streamRef.current = null; };
 
   const capture = async () => {
+    setAutoProgress(0); autoProgressRef.current = 0;
     const v = videoRef.current, c = canvasRef.current;
     if (!v || !c) return;
     c.width = v.videoWidth; c.height = v.videoHeight;
@@ -262,12 +298,15 @@ export default function HostPanel() {
       await w.setParameters({ tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<' });
       const { data: { text } } = await w.recognize(c);
       await w.terminate();
+      console.log('[OCR raw]', text);
       const parsed = parseMRZ(text);
-      if (parsed) { setGuest(g => ({ ...g, ...parsed })); setSubmitState('idle'); setSubmitMsg(''); }
-      else setOcrErr(true);
-    } catch { setOcrErr(true); }
+      if (parsed) { setGuest(g => ({ ...g, ...parsed })); setSubmitState('idle'); setSubmitMsg(''); setOcrRaw(''); }
+      else { setOcrErr(true); setOcrRaw(text); }
+    } catch (e) { setOcrErr(true); console.error('[OCR error]', e); }
     setScreen('form');
   };
+
+  captureRef.current = capture;
 
   // ── Idle ───────────────────────────────────────────────────────────────────
 
@@ -331,7 +370,17 @@ export default function HostPanel() {
             Skeniraj putovnicu ili osobnu iskaznicu
           </button>
 
-          {ocrErr && <Alert color="red" msg="OCR nije prepoznao MRZ zonu. Ponovi skeniranje — MRZ mora biti u kadru i dobro osvijetljen." />}
+          {ocrErr && (
+            <div style={{ background: 'rgba(224,82,82,0.1)', border: '1px solid rgba(224,82,82,0.3)', borderRadius: 4, padding: '0.8rem 1rem', fontSize: '0.78rem', color: '#ef9a9a', marginBottom: '1.5rem', lineHeight: 1.6 }}>
+              OCR nije prepoznao MRZ. Pokušaj ponovo uz bolje osvjetljenje i drži dokument ravno.
+              {ocrRaw ? (
+                <details style={{ marginTop: '0.5rem' }}>
+                  <summary style={{ cursor: 'pointer', opacity: 0.7, fontSize: '0.7rem' }}>Prikaži što je OCR pročitao</summary>
+                  <pre style={{ marginTop: '0.5rem', fontSize: '0.65rem', color: 'rgba(255,255,255,0.5)', whiteSpace: 'pre-wrap', wordBreak: 'break-all', maxHeight: 160, overflowY: 'auto' }}>{ocrRaw}</pre>
+                </details>
+              ) : null}
+            </div>
+          )}
 
           {/* Osobni podaci */}
           <Sect title="Osobni podaci" />
@@ -413,10 +462,26 @@ export default function HostPanel() {
           <p style={lbl}>Usmjeri kameru na MRZ zonu dokumenta</p>
           <div style={{ width: '100%', maxWidth: 640, position: 'relative' }}>
             <video ref={videoRef} playsInline muted style={{ width: '100%', borderRadius: 6, background: '#000', display: 'block', maxHeight: '60vh', objectFit: 'cover' }} />
-            <div style={{ position: 'absolute', bottom: '14%', left: '4%', right: '4%', height: '22%', border: '1.5px solid rgba(184,147,90,0.7)', borderRadius: 3, pointerEvents: 'none', boxShadow: '0 0 0 9999px rgba(0,0,0,0.5)' }} />
+            <div style={{
+              position: 'absolute', bottom: '14%', left: '4%', right: '4%', height: '22%',
+              border: `1.5px solid rgba(184,147,90,${0.5 + autoProgress * 0.17})`,
+              borderRadius: 3, pointerEvents: 'none',
+              boxShadow: `0 0 0 9999px rgba(0,0,0,0.5)${autoProgress > 0 ? `, 0 0 ${autoProgress * 6}px rgba(184,147,90,0.4)` : ''}`,
+              transition: 'border-color 0.4s, box-shadow 0.4s',
+            }} />
+            <div style={{ position: 'absolute', bottom: '8%', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
+              <p style={{ fontSize: '0.62rem', color: `rgba(184,147,90,${0.5 + autoProgress * 0.17})`, letterSpacing: '0.12em', textTransform: 'uppercase', transition: 'color 0.4s' }}>
+                {autoProgress === 0 ? 'Tražim dokument…' : autoProgress === 1 ? 'Prepoznajem…' : 'Drži mirno…'}
+              </p>
+            </div>
           </div>
           <canvas ref={canvasRef} style={{ display: 'none' }} />
-          <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '0.06em', textAlign: 'center' }}>Putovnica — 2 reda na dnu · Osobna — 3 reda na poleđini</p>
+          <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
+            {[0, 1, 2].map(i => (
+              <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: i < autoProgress ? 'var(--gold)' : 'rgba(255,255,255,0.12)', transition: 'background 0.3s' }} />
+            ))}
+          </div>
+          <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.06em', textAlign: 'center' }}>Putovnica — 2 reda na dnu · Osobna — 3 reda na poleđini</p>
           <div style={{ display: 'flex', gap: '0.75rem', width: '100%', maxWidth: 640 }}>
             <button type="button" onClick={() => { stopCamera(); setScreen('form'); }} style={{ ...btnSec, flex: 1 }}>← Odustani</button>
             <button type="button" onClick={capture} style={{ ...btnPri, flex: 2, fontSize: '0.9rem', padding: '0.9rem' }}>Snimi i očitaj</button>
