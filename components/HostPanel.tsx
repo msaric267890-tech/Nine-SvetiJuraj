@@ -259,10 +259,11 @@ export default function HostPanel() {
           <Card width={340}>
             <svg width="28" height="32" viewBox="0 0 14 16" fill="none" style={{ marginBottom: '1rem', color: 'var(--gold)' }}><rect x="1" y="7" width="12" height="9" rx="1.5" stroke="currentColor" strokeWidth="1.3" /><path d="M4 7V5a3 3 0 0 1 6 0v2" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" /><circle cx="7" cy="11.5" r="1" fill="currentColor" /></svg>
             <p style={{ ...lbl, textAlign: 'center', marginBottom: '1.5rem' }}>Pristup domaćina</p>
-            <input type="password" inputMode="numeric" maxLength={8} placeholder="PIN" value={pin}
+            <p style={{ fontSize: '0.72rem', color: 'var(--muted)', textAlign: 'center', marginBottom: '1rem', marginTop: '-0.5rem' }}>Unesi lozinku</p>
+            <input type="password" placeholder="Lozinka" value={pin}
               onChange={e => { setPin(e.target.value); setPinErr(''); }}
               onKeyDown={e => e.key === 'Enter' && submitPin()} autoFocus
-              style={{ ...inp, border: pinErr ? '1px solid #e05252' : '1px solid rgba(184,147,90,0.3)', fontSize: '1.1rem', textAlign: 'center', letterSpacing: '0.3em', marginBottom: '0.5rem' }} />
+              style={{ ...inp, border: pinErr ? '1px solid #e05252' : '1px solid rgba(184,147,90,0.3)', fontSize: '1rem', marginBottom: '0.5rem' }} />
             {pinErr && <p style={{ color: '#e05252', fontSize: '0.75rem', marginBottom: '0.5rem' }}>{pinErr}</p>}
             <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
               <button type="button" onClick={() => { setScreen('idle'); setPin(''); setPinErr(''); }} style={{ ...btnSec, flex: 1 }}>Odustani</button>
