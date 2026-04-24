@@ -63,12 +63,44 @@ function emptyGuest(): Guest {
 
 // ── MRZ parser ─────────────────────────────────────────────────────────────────
 
-function yymmdd(s: string, future = false) {
-  const yy = parseInt(s.slice(0, 2)), mm = s.slice(2, 4), dd = s.slice(4, 6);
-  const yr = future ? (yy < 30 ? 2000 + yy : 1900 + yy) : (yy > 25 ? 1900 + yy : 2000 + yy);
-  return `${dd}.${mm}.${yr}`;
+// OCR frequently swaps 0↔O, 1↔I, 5↔S in numeric fields
+function fixDigits(s: string) {
+  return s.replace(/O/g, '0').replace(/I/g, '1').replace(/S/g, '5').replace(/B/g, '8').replace(/Z/g, '2');
 }
+
+function yymmdd(raw: string, future = false) {
+  const s = fixDigits(raw);
+  const yy = parseInt(s.slice(0, 2), 10);
+  const mm = parseInt(s.slice(2, 4), 10);
+  const dd = parseInt(s.slice(4, 6), 10);
+  if (isNaN(yy) || isNaN(mm) || isNaN(dd) || mm < 1 || mm > 12 || dd < 1 || dd > 31) return '';
+  const yr = future ? (yy < 30 ? 2000 + yy : 1900 + yy) : (yy > 25 ? 1900 + yy : 2000 + yy);
+  return `${String(dd).padStart(2,'0')}.${String(mm).padStart(2,'0')}.${yr}`;
+}
+
 function clean(s: string) { return s.replace(/</g, ' ').replace(/\s+/g, ' ').trim(); }
+
+// Robust name split: OCR often reads '<<' as 'CC', 'KK', 'GG', etc.
+function splitNames(nameField: string): [string, string] {
+  // 1. Try exact '<<'
+  let idx = nameField.indexOf('<<');
+  if (idx > 0) {
+    return [nameField.slice(0, idx), nameField.slice(idx + 2).split('<<')[0]];
+  }
+  // 2. Normalize: treat any non-alpha char as '<', then re-try
+  const norm = nameField.replace(/[^A-Z]/g, '<');
+  idx = norm.indexOf('<<');
+  if (idx > 0) {
+    return [norm.slice(0, idx), norm.slice(idx + 2).split('<<')[0]];
+  }
+  // 3. Detect OCR substitutes for '<<': two consecutive identical non-vowel letters
+  const m = nameField.match(/^([A-Z<]+?)([B-DF-HJ-NP-TV-Z])\2([A-Z<]+)/);
+  if (m && m[1].length > 0) {
+    return [m[1].replace(/<+$/, ''), m[3]];
+  }
+  // 4. Fallback — can't detect separator
+  return ['', nameField];
+}
 
 function parseMRZ(raw: string): Partial<Guest> | null {
   const lines = raw.toUpperCase().split('\n')
@@ -79,17 +111,17 @@ function parseMRZ(raw: string): Partial<Guest> | null {
   if (td3.length >= 2) {
     const l1 = td3[0].padEnd(44, '<').slice(0, 44);
     const l2 = td3[1].padEnd(44, '<').slice(0, 44);
-    const [sur, giv] = l1.slice(5).split('<<');
+    const [sur, giv] = splitNames(l1.slice(5));
     const nat = l2.slice(10, 13).replace(/</g, '');
-    return { surname: clean(sur ?? ''), givenName: clean(giv ?? ''), dob: yymmdd(l2.slice(13, 19)), sex: l2[20] === 'F' ? 'F' : 'M', docType: 'P', docNumber: l2.slice(0, 9).replace(/</g, ''), expiry: yymmdd(l2.slice(21, 27), true), nationality: nat, residenceCountry: nat };
+    return { surname: clean(sur), givenName: clean(giv), dob: yymmdd(l2.slice(13, 19)), sex: l2[20] === 'F' ? 'F' : 'M', docType: 'P', docNumber: fixDigits(l2.slice(0, 9)).replace(/</g, ''), expiry: yymmdd(l2.slice(21, 27), true), nationality: nat, residenceCountry: nat };
   }
 
   const td1 = lines.filter(l => l.length >= 28 && l.length <= 32);
   if (td1.length >= 3) {
     const l1 = td1[0].padEnd(30, '<'), l2 = td1[1].padEnd(30, '<'), l3 = td1[2].padEnd(30, '<');
-    const [sur, giv] = l3.split('<<');
+    const [sur, giv] = splitNames(l3);
     const nat = l2.slice(15, 18).replace(/</g, '');
-    return { surname: clean(sur ?? ''), givenName: clean(giv ?? ''), dob: yymmdd(l2.slice(0, 6)), sex: l2[7] === 'F' ? 'F' : 'M', docType: 'I', docNumber: l1.slice(5, 14).replace(/</g, ''), expiry: yymmdd(l2.slice(8, 14), true), nationality: nat, residenceCountry: nat };
+    return { surname: clean(sur), givenName: clean(giv), dob: yymmdd(l2.slice(0, 6)), sex: l2[7] === 'F' ? 'F' : 'M', docType: 'I', docNumber: fixDigits(l1.slice(5, 14)).replace(/</g, ''), expiry: yymmdd(l2.slice(8, 14), true), nationality: nat, residenceCountry: nat };
   }
   return null;
 }
