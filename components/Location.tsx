@@ -4,7 +4,6 @@ import { useT } from '@/lib/LangContext';
 import TerrainRelief from './TerrainRelief';
 
 const restaurants = [
-  { name: 'Konoba Kiko', dist: '50 m' },
   { name: 'Konoba Gušti', dist: '200 m' },
   { name: 'Pizzeria Adria', dist: '250 m' },
 ];
@@ -127,7 +126,11 @@ export default function Location() {
             {/* Restaurants */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                <span style={{ fontSize: '1rem' }}>🍽</span>
+                <svg width="16" height="16" viewBox="0 0 18 18" fill="none" style={{ color: 'var(--gold)', flexShrink: 0 }}>
+                  <path d="M3 2v5a3 3 0 0 0 3 3v6" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                  <path d="M6 2v4M9 2v4" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" />
+                  <path d="M13 2c0 0 2 2 2 5s-2 4-2 4v5" stroke="currentColor" strokeWidth="1.3" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
                 <h3 style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--white)', opacity: 0.7, fontWeight: 400 }}>
                   {t('nearbyRestaurants')}
                 </h3>
@@ -143,7 +146,10 @@ export default function Location() {
             {/* Beaches */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                <span style={{ fontSize: '1rem' }}>🏖</span>
+                <svg width="18" height="13" viewBox="0 0 20 14" fill="none" style={{ color: 'var(--gold)', flexShrink: 0 }}>
+                  <path d="M1 5 C5 1 9 9 13 5 C17 1 19 5 19 5" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
+                  <path d="M1 9 C5 5 9 13 13 9 C17 5 19 9 19 9" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" opacity="0.55" />
+                </svg>
                 <h3 style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--white)', opacity: 0.7, fontWeight: 400 }}>
                   {t('nearbyBeaches')}
                 </h3>
@@ -159,7 +165,10 @@ export default function Location() {
             {/* Nature */}
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-                <span style={{ fontSize: '1rem' }}>🌿</span>
+                <svg width="18" height="15" viewBox="0 0 20 16" fill="none" style={{ color: 'var(--gold)', flexShrink: 0 }}>
+                  <path d="M2 15 L10 2 L18 15" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" />
+                  <path d="M7 15 L12 7 L17 15" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" opacity="0.5" />
+                </svg>
                 <h3 style={{ fontSize: '0.72rem', letterSpacing: '0.12em', textTransform: 'uppercase', color: 'var(--white)', opacity: 0.7, fontWeight: 400 }}>
                   {t('nearbyNature')}
                 </h3>
@@ -178,7 +187,7 @@ export default function Location() {
       <style>{`
         @media (max-width: 768px) {
           .location-grid { grid-template-columns: 1fr !important; gap: 2.5rem !important; }
-          .nearby-grid { grid-template-columns: 1fr !important; gap: 2rem !important; }
+          .nearby-grid { grid-template-columns: 1fr !important; gap: 1.5rem !important; }
         }
       `}</style>
     </section>

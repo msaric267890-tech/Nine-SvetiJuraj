@@ -1,12 +1,7 @@
-// Edge-compatible session utils (Web Crypto API only — no Node imports)
+// Edge-compatible session verification (Web Crypto API — no Node imports)
+// Token format: {tsHex}.{hmacSHA256Hex} — same algo as node:crypto createHmac('sha256')
 
-const EXPIRY_MS = 12 * 60 * 60 * 1000; // 12 h
-
-function toHex(buf: ArrayBuffer) {
-  return Array.from(new Uint8Array(buf))
-    .map((b) => b.toString(16).padStart(2, '0'))
-    .join('');
-}
+const EXPIRY_MS = 12 * 60 * 60 * 1000;
 
 function fromHex(hex: string) {
   const a = new Uint8Array(hex.length / 2);
@@ -17,23 +12,19 @@ function fromHex(hex: string) {
 async function hmacKey(secret: string) {
   return crypto.subtle.importKey(
     'raw',
-    new TextEncoder().encode(secret),
+    new TextEncoder().encode(secret || 'fallback'),
     { name: 'HMAC', hash: 'SHA-256' },
     false,
-    ['sign', 'verify']
+    ['verify']
   );
-}
-
-export async function signSession(secret: string): Promise<string> {
-  const ts = Date.now().toString(16);
-  const key = await hmacKey(secret);
-  const sig = toHex(await crypto.subtle.sign('HMAC', key, new TextEncoder().encode(ts)));
-  return `${ts}.${sig}`;
 }
 
 export async function verifySession(token: string, secret: string): Promise<boolean> {
   try {
-    const [ts, sig] = token.split('.');
+    const dot = token.indexOf('.');
+    if (dot < 0) return false;
+    const ts = token.slice(0, dot);
+    const sig = token.slice(dot + 1);
     if (!ts || !sig) return false;
     if (Date.now() - parseInt(ts, 16) > EXPIRY_MS) return false;
     const key = await hmacKey(secret);

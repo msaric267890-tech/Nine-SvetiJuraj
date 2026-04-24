@@ -1,10 +1,14 @@
-export const runtime = 'edge';
-
 import { NextRequest, NextResponse } from 'next/server';
-import { signSession } from '@/lib/session';
+import { createHmac } from 'node:crypto';
 
-const RL_WINDOW_MS = 10 * 60 * 1000; // 10 min window
-const RL_MAX = 5;                     // max attempts per window
+const RL_WINDOW_MS = 10 * 60 * 1000;
+const RL_MAX = 5;
+
+function signSession(secret: string): string {
+  const ts = Date.now().toString(16);
+  const sig = createHmac('sha256', secret || 'fallback').update(ts).digest('hex');
+  return `${ts}.${sig}`;
+}
 
 export async function POST(req: NextRequest) {
   const secret = process.env.SESSION_SECRET ?? '';
@@ -31,18 +35,19 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // ── PIN check ──────────────────────────────────────────────────────────────
-  const { pin } = await req.json();
+  // ── PIN / lozinka provjera ─────────────────────────────────────────────────
+  let body: { pin?: string };
+  try { body = await req.json(); } catch { return NextResponse.json({ error: 'Neispravan zahtjev.' }, { status: 400 }); }
 
-  if (pin !== correctPin) {
+  if (body.pin !== correctPin) {
     count++;
-    const res = NextResponse.json({ error: 'Pogrešan PIN' }, { status: 401 });
+    const res = NextResponse.json({ error: 'Pogrešna lozinka' }, { status: 401 });
     res.cookies.set('nine_rl', `${count}:${windowStart}`, { httpOnly: true, path: '/', sameSite: 'strict' });
     return res;
   }
 
-  // ── Success — issue session cookie ─────────────────────────────────────────
-  const token = await signSession(secret);
+  // ── Uspjeh — postavi session cookie ───────────────────────────────────────
+  const token = signSession(secret);
   const res = NextResponse.json({ ok: true });
 
   res.cookies.set('nine_session', token, {
@@ -52,8 +57,6 @@ export async function POST(req: NextRequest) {
     path: '/',
     maxAge: 12 * 3600,
   });
-
-  // Reset rate limit on success
   res.cookies.set('nine_rl', '0:0', { httpOnly: true, path: '/', sameSite: 'strict' });
 
   return res;
