@@ -148,6 +148,7 @@ export default function HostPanel() {
   const streamRef = useRef<MediaStream | null>(null);
   const captureRef = useRef<() => Promise<void>>(async () => {});
   const autoProgressRef = useRef(0);
+  const STABLE_NEEDED = 5; // frames at ~500 ms = ~2.5 s of sharp focus
 
   // ── Auth ───────────────────────────────────────────────────────────────────
 
@@ -239,27 +240,41 @@ export default function HostPanel() {
     autoProgressRef.current = 0;
     setAutoProgress(0);
 
+    // Laplacian sharpness: measures edge strength, not just contrast.
+    // A blurry document reads low even if it has dark text on white.
+    function lapSharpness(px: Uint8ClampedArray, W: number, H: number) {
+      let sum2 = 0, n = 0;
+      for (let y = 1; y < H - 1; y++) {
+        for (let x = 1; x < W - 1; x++) {
+          const i = (y * W + x) * 4;
+          const lum = (c: number) => 0.299 * px[c] + 0.587 * px[c + 1] + 0.114 * px[c + 2];
+          const lap = 4 * lum(i) - lum(i - W * 4) - lum(i + W * 4) - lum(i - 4) - lum(i + 4);
+          sum2 += lap * lap; n++;
+        }
+      }
+      return n ? sum2 / n : 0;
+    }
+
     const id = setInterval(() => {
       const v = videoRef.current;
       if (!v || v.readyState < 2 || v.videoWidth === 0) return;
-      const W = 200, H = 40;
+      // Sample the guide-box zone: left 4%–96%, vertical 64%–86% of frame
+      const W = 240, H = 60;
       const tmp = document.createElement('canvas');
       tmp.width = W; tmp.height = H;
       const ctx = tmp.getContext('2d');
       if (!ctx) return;
-      ctx.drawImage(v, 0, Math.floor(v.videoHeight * 0.70), v.videoWidth, Math.floor(v.videoHeight * 0.25), 0, 0, W, H);
+      const srcX = Math.floor(v.videoWidth * 0.04);
+      const srcW = Math.floor(v.videoWidth * 0.92);
+      const srcY = Math.floor(v.videoHeight * 0.64);
+      const srcH = Math.floor(v.videoHeight * 0.22);
+      ctx.drawImage(v, srcX, srcY, srcW, srcH, 0, 0, W, H);
       const px = ctx.getImageData(0, 0, W, H).data;
-      let sum = 0, sum2 = 0;
-      for (let i = 0; i < px.length; i += 4) {
-        const lum = 0.299 * px[i] + 0.587 * px[i + 1] + 0.114 * px[i + 2];
-        sum += lum; sum2 += lum * lum;
-      }
-      const n = W * H;
-      const variance = sum2 / n - (sum / n) ** 2;
-      if (variance > 400) {
+      const sharpness = lapSharpness(px, W, H);
+      if (sharpness > 350) {
         autoProgressRef.current++;
-        setAutoProgress(Math.min(autoProgressRef.current, 3));
-        if (autoProgressRef.current >= 3) { clearInterval(id); captureRef.current(); }
+        setAutoProgress(Math.min(autoProgressRef.current, STABLE_NEEDED));
+        if (autoProgressRef.current >= STABLE_NEEDED) { clearInterval(id); captureRef.current(); }
       } else {
         autoProgressRef.current = 0; setAutoProgress(0);
       }
@@ -470,15 +485,15 @@ export default function HostPanel() {
               transition: 'border-color 0.4s, box-shadow 0.4s',
             }} />
             <div style={{ position: 'absolute', bottom: '8%', left: 0, right: 0, textAlign: 'center', pointerEvents: 'none' }}>
-              <p style={{ fontSize: '0.62rem', color: `rgba(184,147,90,${0.5 + autoProgress * 0.17})`, letterSpacing: '0.12em', textTransform: 'uppercase', transition: 'color 0.4s' }}>
-                {autoProgress === 0 ? 'Tražim dokument…' : autoProgress === 1 ? 'Prepoznajem…' : 'Drži mirno…'}
+              <p style={{ fontSize: '0.62rem', color: `rgba(184,147,90,${0.45 + autoProgress * 0.11})`, letterSpacing: '0.12em', textTransform: 'uppercase', transition: 'color 0.4s' }}>
+                {autoProgress === 0 ? 'Tražim dokument…' : autoProgress < 3 ? 'Prepoznajem…' : 'Drži mirno…'}
               </p>
             </div>
           </div>
           <canvas ref={canvasRef} style={{ display: 'none' }} />
-          <div style={{ display: 'flex', gap: 7, alignItems: 'center' }}>
-            {[0, 1, 2].map(i => (
-              <div key={i} style={{ width: 6, height: 6, borderRadius: '50%', background: i < autoProgress ? 'var(--gold)' : 'rgba(255,255,255,0.12)', transition: 'background 0.3s' }} />
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} style={{ width: 5, height: 5, borderRadius: '50%', background: i <= autoProgress ? 'var(--gold)' : 'rgba(255,255,255,0.12)', transition: 'background 0.3s' }} />
             ))}
           </div>
           <p style={{ fontSize: '0.7rem', color: 'rgba(255,255,255,0.35)', letterSpacing: '0.06em', textAlign: 'center' }}>Putovnica — 2 reda na dnu · Osobna — 3 reda na poleđini</p>
