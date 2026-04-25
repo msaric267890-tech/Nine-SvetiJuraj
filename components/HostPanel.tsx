@@ -120,8 +120,12 @@ function splitNames(nameField: string): [string, string] {
 
 function parseMRZ(raw: string): Partial<Guest> | null {
   const lines = raw.toUpperCase().split('\n')
-    .map(l => l.replace(/\s/g, '').replace(/[^A-Z0-9<]/g, ''))
-    .filter(l => l.length >= 28);
+    .map(l => l
+      .replace(/[«‹›»\u00AB\u00BB\u2039\u203A]/g, '<') // Vision katkad vraća ove umjesto <
+      .replace(/\s/g, '')
+      .replace(/[^A-Z0-9<]/g, '')
+    )
+    .filter(l => l.length >= 26);
 
   const td3 = lines.filter(l => l.length >= 40);
   if (td3.length >= 2) {
@@ -320,15 +324,9 @@ export default function HostPanel() {
     setAutoProgress(0); autoProgressRef.current = 0;
     const v = videoRef.current, c = canvasRef.current;
     if (!v || !c) return;
-
-    // Crop to MRZ zone (bottom ~40% of frame) and encode as JPEG for smaller payload
-    const vW = v.videoWidth, vH = v.videoHeight;
-    const cropY = Math.floor(vH * 0.55);
-    const cropH = vH - cropY;
-    c.width = vW; c.height = cropH;
-    c.getContext('2d')?.drawImage(v, 0, cropY, vW, cropH, 0, 0, vW, cropH);
-    const imageData = c.toDataURL('image/jpeg', 0.92);
-
+    c.width = v.videoWidth; c.height = v.videoHeight;
+    c.getContext('2d')?.drawImage(v, 0, 0);
+    const imageData = c.toDataURL('image/jpeg', 0.9);
     stopCamera(); setScreen('processing'); setOcrErr(false);
     try {
       const res = await fetch('/api/scan', {
@@ -337,13 +335,13 @@ export default function HostPanel() {
         body: JSON.stringify({ image: imageData }),
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error ?? 'Greška');
+      if (!res.ok) { setOcrErr(true); setOcrRaw(`API greška ${res.status}: ${data.error ?? ''}`); setScreen('form'); return; }
       const text: string = data.text ?? '';
       console.log('[Vision raw]', text);
       const parsed = parseMRZ(text);
       if (parsed) { setGuest(g => ({ ...g, ...parsed })); setSubmitState('idle'); setSubmitMsg(''); setOcrRaw(''); }
       else { setOcrErr(true); setOcrRaw(text); }
-    } catch (e) { setOcrErr(true); console.error('[scan error]', e); }
+    } catch (e) { setOcrErr(true); setOcrRaw(String(e)); console.error('[scan error]', e); }
     setScreen('form');
   };
 
