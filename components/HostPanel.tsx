@@ -94,21 +94,24 @@ function splitNames(nameField: string): [string, string] {
   idx = norm.indexOf('<<');
   if (idx > 0) return [norm.slice(0, idx), clean(norm.slice(idx + 2).split('<')[0])];
 
-  // Step 3: OCR read '<' as a letter (most often 'C', also 'K'/'G').
-  // Find the LAST run of 2+ identical chars — that is the '<<' separator.
-  // A run of 3 means the surname's last char == filler char (e.g. SARIC + CC → CCC).
+  // Step 3: OCR read '<' as a look-alike letter (C most common, K/G less so).
+  // The separator '<<' → 'CC'; trailing padding '<<<<<' → 'CCCCC'.
+  // Find the LAST run of 2+ filler chars that does NOT reach string end.
+  // Terminal runs are trailing padding and must be excluded.
+  // A run of 3 means the surname's last char == the filler char (SARIC + CC → CCC).
+  const FILLER = new Set(['<', 'C', 'K', 'G']);
   let lastRun: { at: number; len: number } | null = null;
   for (let i = 0; i < s.length; ) {
     let j = i + 1;
     while (j < s.length && s[j] === s[i]) j++;
-    if (j - i >= 2) lastRun = { at: i, len: j - i };
+    const len = j - i;
+    if (len >= 2 && FILLER.has(s[i]) && j < s.length) lastRun = { at: i, len };
     i = j;
   }
   if (lastRun) {
     const sepAt = lastRun.len >= 3 ? lastRun.at + 1 : lastRun.at;
     const sur = s.slice(0, sepAt);
-    const giv = s.slice(lastRun.at + lastRun.len);
-    if (sur.length > 0) return [sur, clean(giv)];
+    if (sur.length > 0) return [sur, clean(s.slice(lastRun.at + lastRun.len))];
   }
 
   // Fallback — host edits manually
