@@ -80,21 +80,39 @@ function yymmdd(raw: string, future = false) {
 
 function clean(s: string) { return s.replace(/</g, ' ').replace(/\s+/g, ' ').trim(); }
 
-// Robust name split: OCR often reads '<<' as other chars
+// Robust name split: OCR often reads '<<' as other chars or preserves trailing '<' padding.
 function splitNames(nameField: string): [string, string] {
-  // 1. Try exact '<<'
-  let idx = nameField.indexOf('<<');
-  if (idx > 0) {
-    return [nameField.slice(0, idx), nameField.slice(idx + 2).split('<<')[0]];
-  }
-  // 2. Normalize any non-alpha to '<', re-try (catches noise chars between <<)
-  const norm = nameField.replace(/[^A-Z]/g, '<');
+  // Strip trailing '<' filler so it can't be mistaken for the separator
+  const s = nameField.replace(/<+$/, '');
+
+  // Step 1: exact <<
+  let idx = s.indexOf('<<');
+  if (idx > 0) return [s.slice(0, idx), clean(s.slice(idx + 2).split('<')[0])];
+
+  // Step 2: normalize non-alpha (digit/noise chars) → '<', retry
+  const norm = s.replace(/[^A-Z]/g, '<');
   idx = norm.indexOf('<<');
-  if (idx > 0) {
-    return [norm.slice(0, idx), norm.slice(idx + 2).split('<<')[0]];
+  if (idx > 0) return [norm.slice(0, idx), clean(norm.slice(idx + 2).split('<')[0])];
+
+  // Step 3: OCR read '<' as a letter (most often 'C', also 'K'/'G').
+  // Find the LAST run of 2+ identical chars — that is the '<<' separator.
+  // A run of 3 means the surname's last char == filler char (e.g. SARIC + CC → CCC).
+  let lastRun: { at: number; len: number } | null = null;
+  for (let i = 0; i < s.length; ) {
+    let j = i + 1;
+    while (j < s.length && s[j] === s[i]) j++;
+    if (j - i >= 2) lastRun = { at: i, len: j - i };
+    i = j;
   }
-  // 3. Fallback — return everything as given name, host can edit manually
-  return ['', clean(nameField)];
+  if (lastRun) {
+    const sepAt = lastRun.len >= 3 ? lastRun.at + 1 : lastRun.at;
+    const sur = s.slice(0, sepAt);
+    const giv = s.slice(lastRun.at + lastRun.len);
+    if (sur.length > 0) return [sur, clean(giv)];
+  }
+
+  // Fallback — host edits manually
+  return ['', clean(s)];
 }
 
 function parseMRZ(raw: string): Partial<Guest> | null {
