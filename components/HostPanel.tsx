@@ -320,25 +320,30 @@ export default function HostPanel() {
     setAutoProgress(0); autoProgressRef.current = 0;
     const v = videoRef.current, c = canvasRef.current;
     if (!v || !c) return;
-    c.width = v.videoWidth; c.height = v.videoHeight;
-    c.getContext('2d')?.drawImage(v, 0, 0);
+
+    // Crop to MRZ zone (bottom ~40% of frame) and encode as JPEG for smaller payload
+    const vW = v.videoWidth, vH = v.videoHeight;
+    const cropY = Math.floor(vH * 0.55);
+    const cropH = vH - cropY;
+    c.width = vW; c.height = cropH;
+    c.getContext('2d')?.drawImage(v, 0, cropY, vW, cropH, 0, 0, vW, cropH);
+    const imageData = c.toDataURL('image/jpeg', 0.92);
+
     stopCamera(); setScreen('processing'); setOcrErr(false);
     try {
-      const { createWorker } = await import('tesseract.js');
-      const w = await createWorker('eng', 1, {
-        workerPath: 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/worker.min.js',
-        langPath: 'https://tessdata.projectnaptha.com/4.0.0_best',
-        corePath: 'https://cdn.jsdelivr.net/npm/tesseract.js-core@5/tesseract-core-simd-lstm.wasm.js',
-        logger: () => {},
+      const res = await fetch('/api/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ image: imageData }),
       });
-      await w.setParameters({ tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<' });
-      const { data: { text } } = await w.recognize(c);
-      await w.terminate();
-      console.log('[OCR raw]', text);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error ?? 'Greška');
+      const text: string = data.text ?? '';
+      console.log('[Vision raw]', text);
       const parsed = parseMRZ(text);
       if (parsed) { setGuest(g => ({ ...g, ...parsed })); setSubmitState('idle'); setSubmitMsg(''); setOcrRaw(''); }
       else { setOcrErr(true); setOcrRaw(text); }
-    } catch (e) { setOcrErr(true); console.error('[OCR error]', e); }
+    } catch (e) { setOcrErr(true); console.error('[scan error]', e); }
     setScreen('form');
   };
 
